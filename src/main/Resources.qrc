@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>UserInterface.qml</file>
+        <file alias="Dosis-SemiBold.ttf">../../external/dosis-font/Dosis-SemiBold.ttf</file>
+    </qresource>
+</RCC>
