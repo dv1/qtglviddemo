@@ -119,6 +119,9 @@ private:
 	QQmlApplicationEngine m_engine;
 	QQuickWindow *m_mainWindow;
 
+	// Keeping the FIFO path separately because the FifoWatch getPath()
+	// function returns an empty string when the FIFO watch is stopped.
+	QString m_fifoPath;
 	FifoWatch m_fifoWatch;
 
 	VideoObjectModel m_videoObjectModel;

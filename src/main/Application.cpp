@@ -348,10 +348,10 @@ void Application::loadConfiguration()
 	auto fifoPathIter = jsonObject.find("fifoPath");
 	if ((fifoPathIter != jsonObject.end()) && fifoPathIter->isString())
 	{
-		QString fifoPath = fifoPathIter->toString();
-		qCDebug(lcQtGLVidDemo) << "FIFO path " << fifoPath << " found in configuration";
+		m_fifoPath = fifoPathIter->toString();
+		qCDebug(lcQtGLVidDemo) << "FIFO path " << m_fifoPath << " found in configuration";
 
-		m_fifoWatch.start(fifoPath, true);
+		m_fifoWatch.start(m_fifoPath, true);
 	}
 	else
 		qCDebug(lcQtGLVidDemo) << "FIFO path not found in configuration";
@@ -426,8 +426,8 @@ void Application::saveConfiguration()
 		jsonObject["items"] = itemsJsonArray;
 	}
 
-	if (!m_fifoWatch.getPath().isEmpty())
-		jsonObject["fifoPath"] = m_fifoWatch.getPath();
+	if (!m_fifoPath.isEmpty())
+		jsonObject["fifoPath"] = m_fifoPath;
 
 	if (!m_videoInputDevicesModel.getDeviceNodeNameMap().empty())
 	{
