@@ -80,12 +80,7 @@ void main(void)
 {
 	float lighting = clamp(dot(lightVector, normalize(normalVariant)), 0.0, 1.0);
 	vec4 texel = texture2D(videoTexture, texcoordsVariant);
-	float mask = float(texcoordsVariant.x >= 0.0)
-	           * float(texcoordsVariant.y >= 0.0)
-	           * float(texcoordsVariant.x <= 1.0)
-	           * float(texcoordsVariant.y <= 1.0)
-	           ;
-	gl_FragColor = vec4(mask * lighting * texel.rgb, 1.0);
+	gl_FragColor = vec4(lighting * texel.rgb, 1.0);
 }
 
 ); // LONG_STRING_CONST end
@@ -128,11 +123,11 @@ VideoMaterial::VideoMaterial(VideoMaterialPrivIFace &p_privIFace, QOpenGLContext
 	m_glcontext->functions()->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	m_glcontext->functions()->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	// Set wrap values to GL_CLAMP_TO_EDGE to force the GPU
-	// to use the texture's border pixel values for texture
-	// coordinates outside of the 0.0-1.0 range.
-	m_glcontext->functions()->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	m_glcontext->functions()->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	// Set wrap values to GL_REPEAT to make the GPU repeat
+	// the texture for coordinates outside of the 0.0-1.0
+	// range.
+	m_glcontext->functions()->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	m_glcontext->functions()->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
 	m_glcontext->functions()->glBindTexture(GL_TEXTURE_2D, 0);
 }
