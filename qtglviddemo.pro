@@ -12,6 +12,7 @@ SOURCES += \
 	src/mesh/QuadMesh.cpp \
 	src/mesh/CubeMesh.cpp \
 	src/mesh/TeapotMesh.cpp \
+	src/mesh/SphereMesh.cpp \
 	src/mesh/Mesh.cpp \
 	src/scene/GLResources.cpp \
 	src/scene/Transform.cpp \
@@ -34,6 +35,7 @@ HEADERS += \
 	src/base/FifoWatch.hpp \
 	src/base/Utility.hpp \
 	src/mesh/TeapotMesh.hpp \
+	src/mesh/SphereMesh.hpp \
 	src/mesh/Mesh.hpp \
 	src/mesh/CubeMesh.hpp \
 	src/mesh/QuadMesh.hpp \

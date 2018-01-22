@@ -28,6 +28,7 @@
 #include "mesh/CubeMesh.hpp"
 #include "mesh/QuadMesh.hpp"
 #include "mesh/TeapotMesh.hpp"
+#include "mesh/SphereMesh.hpp"
 
 
 Q_DECLARE_LOGGING_CATEGORY(lcQtGLVidDemo)
@@ -97,6 +98,8 @@ Mesh & GLResources::getMesh(QString const &p_meshType)
 			newMesh->setContents(getCubeMeshData());
 		else if (p_meshType == "teapot")
 			newMesh->setContents(getTeapotMeshData());
+		else if (p_meshType == "sphere")
+			newMesh->setContents(calculateSphereMeshData(1.0f, 16, 32));
 
 		auto retval = m_meshMap.emplace(p_meshType, std::move(newMesh));
 		iter = retval.first;

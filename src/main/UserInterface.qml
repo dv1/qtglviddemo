@@ -317,6 +317,10 @@ Window {
 								text: "Quad"
 								meshType: "quad"
 							}
+							ListElement {
+								text: "Sphere"
+								meshType: "sphere"
+							}
 						}
 
 						onActivated: {
