@@ -75,11 +75,10 @@ Application::Application(int &argc, char **argv)
 	QGuiApplication::setApplicationName("qtglviddemo");
 	QGuiApplication::setApplicationVersion("1.0");
 
-	// Set the context properties. These are exposed
-	// in QML as global variables.
-	m_engine.rootContext()->setContextProperty("videoObjectModel", &m_videoObjectModel);
-	m_engine.rootContext()->setContextProperty("videoInputDevicesModel", &m_videoInputDevicesModel);
-	m_engine.rootContext()->setContextProperty("fifoWatch", &m_fifoWatch);
+	// Set this application object as the context object. This way, properties
+	// like keepSplashscreen can be accessed from QML, and functions marked
+	// with Q_INVOKABLE can be called from QML.
+	m_engine.rootContext()->setContextObject(this);
 }
 
 
@@ -95,12 +94,6 @@ Application::~Application()
 bool Application::prepare()
 {
 	loadConfiguration();
-
-	// Set the splashscreen filename as URL, since QML
-	// Image elements expect URLs, not filenames.
-	m_engine.rootContext()->setContextProperty("splashscreenUrl", QUrl::fromLocalFile(m_splashScreenFilename));
-	// Set the keepSplashscreen flag.
-	m_engine.rootContext()->setContextProperty("keepSplashscreen", m_keepSplashscreen);
 
 	// Load the QML from our resources.
 	m_engine.load(QUrl("qrc:/UserInterface.qml"));
@@ -173,12 +166,44 @@ QQuickWindow& Application::getMainWindow()
 }
 
 
+VideoObjectModel* Application::getVideoObjectModel()
+{
+	return &m_videoObjectModel;
+}
+
+
+VideoInputDevicesModel* Application::getVideoInputDevicesModel()
+{
+	return &m_videoInputDevicesModel;
+}
+
+
+FifoWatch* Application::getFifoWatch()
+{
+	return &m_fifoWatch;
+}
+
+
+QUrl Application::getSplashscreenUrl()
+{
+	return QUrl::fromLocalFile(m_splashScreenFilename);
+}
+
+
+bool Application::getKeepSplashscreen()
+{
+	return m_keepSplashscreen;
+}
+
+
 void Application::loadConfiguration()
 {
 	// First, some sanity checks.
 
 	if (m_configFilename.isEmpty())
 		return;
+
+	qCDebug(lcQtGLVidDemo) << "Loading configuration from file" << m_configFilename;
 
 	QFile jsonFile(m_configFilename);
 	if (!jsonFile.exists())
@@ -389,6 +414,8 @@ void Application::saveConfiguration()
 
 	if (m_configFilename.isEmpty())
 		return;
+
+	qCDebug(lcQtGLVidDemo) << "Saving configuration to file" << m_configFilename;
 
 	QFile jsonFile(m_configFilename);
 	if (!jsonFile.open(QFile::WriteOnly))

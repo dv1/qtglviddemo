@@ -51,6 +51,13 @@ namespace qtglviddemo
 class Application
 	: public QApplication
 {
+	Q_OBJECT
+	Q_PROPERTY(VideoObjectModel *videoObjectModel READ getVideoObjectModel CONSTANT)
+	Q_PROPERTY(VideoInputDevicesModel *videoInputDevicesModel READ getVideoInputDevicesModel CONSTANT)
+	Q_PROPERTY(FifoWatch *fifoWatch READ getFifoWatch CONSTANT)
+	Q_PROPERTY(QUrl splashscreenUrl READ getSplashscreenUrl CONSTANT)
+	Q_PROPERTY(bool keepSplashscreen READ getKeepSplashscreen CONSTANT)
+
 public:
 	/**
 	 * Constructor.
@@ -107,6 +114,14 @@ public:
 
 
 private:
+	// These getters are to be used by the properties only,
+	// so they are made private.
+	VideoObjectModel* getVideoObjectModel();
+	VideoInputDevicesModel* getVideoInputDevicesModel();
+	FifoWatch* getFifoWatch();
+	QUrl getSplashscreenUrl();
+	bool getKeepSplashscreen();
+
 	void loadConfiguration();
 	void saveConfiguration();
 
