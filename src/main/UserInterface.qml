@@ -151,6 +151,12 @@ Window {
 			onCropRectangleChanged: objCropRectangle = cropRectangleValue
 			onTextureRotationValueChanged: objTextureRotation = textureRotationValue
 
+			// Rotation changes are fed back differently compared to the
+			// other properties above because changes are not notified
+			// by any of the QML items in here, but by the C++ VideoObjectItem
+			// object's rotationChanged signal instead.
+			onRotationChanged: objRotation = rotation
+
 			onCanStartPlayback: {
 				// If playback ends, restart it.
 				player.onEndOfStream.connect(function() { player.play(); });
