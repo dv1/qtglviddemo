@@ -109,6 +109,8 @@ public:
 	 */
 	std::pair < bool, int > parseCommandLineArgs();
 
+	Q_INVOKABLE void saveConfiguration();
+
 	/// Retrieve a reference to the main application window.
 	QQuickWindow & getMainWindow();
 
@@ -123,7 +125,6 @@ private:
 	bool getKeepSplashscreen();
 
 	void loadConfiguration();
-	void saveConfiguration();
 
 	QString m_configFilename;
 	bool m_saveConfigAtEnd;

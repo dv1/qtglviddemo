@@ -568,6 +568,11 @@ Window {
 					text: "Remove current media"
 					onClicked: videoObjectModel.remove(itemView.currentIndex)
 				}
+				Button {
+					Layout.fillWidth: true
+					text: "Save configuration"
+					onClicked: saveConfiguration()
+				}
 				Item {
 					Layout.fillWidth: true
 					Layout.fillHeight: true
