@@ -97,7 +97,7 @@ bool Application::prepare()
 
 	// Set the splashscreen filename as URL, since QML
 	// Image elements expect URLs, not filenames.
-	m_engine.rootContext()->setContextProperty("splashscreenUrl", m_splashScreenUrl);
+	m_engine.rootContext()->setContextProperty("splashscreenUrl", QUrl::fromLocalFile(m_splashScreenFilename));
 
 	// Load the QML from our resources.
 	m_engine.load(QUrl("qrc:/UserInterface.qml"));
@@ -127,8 +127,6 @@ std::pair < bool, int > Application::parseCommandLineArgs()
 	cmdlineParser.addOption(writeConfigAtEndOption);
 	QCommandLineOption configFileOption(QStringList() << "c" << "config-file", "Configuration file to use", "config-file");
 	cmdlineParser.addOption(configFileOption);
-	QCommandLineOption splashscreenFilenameOption(QStringList() << "s" << "splashscreen", "Filename of splashscreen to use", "splashscreen");
-	cmdlineParser.addOption(splashscreenFilenameOption);
 
 	if (!cmdlineParser.parse(arguments()))
 	{
@@ -160,12 +158,6 @@ std::pair < bool, int > Application::parseCommandLineArgs()
 	{
 		qCDebug(lcQtGLVidDemo) << "Will save configuration when program ends";
 		m_saveConfigAtEnd = true;
-	}
-
-	if (cmdlineParser.isSet(splashscreenFilenameOption))
-	{
-		m_splashScreenUrl = QUrl::fromLocalFile(cmdlineParser.value(splashscreenFilenameOption));
-		qCDebug(lcQtGLVidDemo) << "Using splashscreen URL" << m_splashScreenUrl;
 	}
 
 	return std::make_pair(true, 0);
@@ -360,6 +352,22 @@ void Application::loadConfiguration()
 	}
 	else
 		qCDebug(lcQtGLVidDemo) << "FIFO path not found in configuration";
+
+	// Check splashscreen settings.
+	auto splashscreenIter = jsonObject.find("splashscreen");
+	if ((splashscreenIter != jsonObject.end()) && splashscreenIter->isObject())
+	{
+		QJsonObject splashscreenObject = splashscreenIter->toObject();
+
+		auto splashscreenFilenameIter = splashscreenObject.find("filename");
+		if ((splashscreenFilenameIter != splashscreenObject.end()) && splashscreenFilenameIter->isString())
+		{
+			m_splashScreenFilename = splashscreenFilenameIter->toString();
+			qCDebug(lcQtGLVidDemo) << "Using splashscreen filename" << m_splashScreenFilename;
+		}
+		else
+			qCDebug(lcQtGLVidDemo) << "No splashscreen filename was specified";
+	}
 }
 
 
@@ -422,6 +430,13 @@ void Application::saveConfiguration()
 		}
 
 		jsonObject["deviceNodeNameMap"] = deviceNodeNameArray;
+	}
+
+	if (!m_splashScreenFilename.isEmpty())
+	{
+		QJsonObject splashscreenObject;
+		splashscreenObject["filename"] = m_splashScreenFilename;
+		jsonObject["splashscreen"] = splashscreenObject;
 	}
 
 	jsonFile.write(QJsonDocument(jsonObject).toJson());

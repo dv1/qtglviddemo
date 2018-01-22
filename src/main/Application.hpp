@@ -113,7 +113,7 @@ private:
 	QString m_configFilename;
 	bool m_saveConfigAtEnd;
 
-	QUrl m_splashScreenUrl;
+	QString m_splashScreenFilename;
 
 	QQmlApplicationEngine m_engine;
 	QQuickWindow *m_mainWindow;
