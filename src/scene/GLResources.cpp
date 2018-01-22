@@ -29,6 +29,7 @@
 #include "mesh/QuadMesh.hpp"
 #include "mesh/TeapotMesh.hpp"
 #include "mesh/SphereMesh.hpp"
+#include "mesh/TorusMesh.hpp"
 
 
 Q_DECLARE_LOGGING_CATEGORY(lcQtGLVidDemo)
@@ -100,6 +101,8 @@ Mesh & GLResources::getMesh(QString const &p_meshType)
 			newMesh->setContents(getTeapotMeshData());
 		else if (p_meshType == "sphere")
 			newMesh->setContents(calculateSphereMeshData(1.0f, 16, 32));
+		else if (p_meshType == "torus")
+			newMesh->setContents(calculateTorusMeshData(1.0f, 0.4f, 32, 16));
 
 		auto retval = m_meshMap.emplace(p_meshType, std::move(newMesh));
 		iter = retval.first;

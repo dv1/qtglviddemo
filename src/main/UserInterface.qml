@@ -321,6 +321,10 @@ Window {
 								text: "Sphere"
 								meshType: "sphere"
 							}
+							ListElement {
+								text: "Torus"
+								meshType: "torus"
+							}
 						}
 
 						onActivated: {
