@@ -331,29 +331,27 @@ Window {
 							}
 						}
 
+						property var meshType: itemView.currentItem.meshTypeValue
+
 						onActivated: {
-							itemView.currentItem.meshTypeValue = model.get(currentIndex).meshType;
+							var desc = model.get(currentIndex);
+							if (desc !== undefined)
+								itemView.currentItem.meshTypeValue = desc.meshType;
 						}
 
-						Component.onCompleted: {
-							// The ComboBox unfortunately does not accept
-							// direct data bindings to model properties.
-							// This means that we have to manually update
-							// its selected list element if the current item
-							// in the view was changed.
-							itemView.onCurrentItemChanged.connect(function() {
-								var index = 0;
-								var curItem = itemView.currentItem;
-								for (var i = 0; i < model.count; i++) {
-									var elem = model.get(i);
-									if (elem.meshType == curItem.meshTypeValue) {
-										index = i;
-										break;
-									}
+						onMeshTypeChanged: {
+							var curItem = itemView.currentItem;
+
+							var index = 0;
+							for (var i = 0; i < model.count; i++) {
+								var elem = model.get(i);
+								if (elem.meshType == curItem.meshTypeValue) {
+									index = i;
+									break;
 								}
-								if (currentIndex !== index)
-									currentIndex = index;
-							});
+							}
+							if (currentIndex !== index)
+								currentIndex = index;
 						}
 					}
 					Label { text: "Subtitle source" }
@@ -371,31 +369,27 @@ Window {
 							}
 						}
 
+						property var subtitleSource: itemView.currentItem.subtitleSourceValue
+
 						onActivated: {
 							var desc = model.get(currentIndex);
 							if (desc !== undefined)
 								itemView.currentItem.subtitleSourceValue = desc.subtitleSource;
 						}
 
-						Component.onCompleted: {
-							// The ComboBox unfortunately does not accept
-							// direct data bindings to model properties.
-							// This means that we have to manually update
-							// its selected list element if the current item
-							// in the view was changed.
-							itemView.onCurrentItemChanged.connect(function() {
-								var index = 0;
-								var curItem = itemView.currentItem;
-								for (var i = 0; i < model.count; i++) {
-									var elem = model.get(i);
-									if (elem.subtitleSource == curItem.subtitleSourceValue) {
-										index = i;
-										break;
-									}
+						onSubtitleSourceChanged: {
+							var curItem = itemView.currentItem;
+
+							var index = 0;
+							for (var i = 0; i < model.count; i++) {
+								var elem = model.get(i);
+								if (elem.subtitleSource == curItem.subtitleSourceValue) {
+									index = i;
+									break;
 								}
-								if (currentIndex !== index)
-									currentIndex = index;
-							});
+							}
+							if (currentIndex !== index)
+								currentIndex = index;
 						}
 					}
 				}
