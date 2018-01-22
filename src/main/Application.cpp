@@ -69,6 +69,7 @@ bool fromString(QString const p_string, VideoObjectModel::SubtitleSource &p_subt
 Application::Application(int &argc, char **argv)
 	: QApplication(argc, argv)
 	, m_saveConfigAtEnd(false)
+	, m_keepSplashscreen(false)
 {
 	// Set some information about our application.
 	QGuiApplication::setApplicationName("qtglviddemo");
@@ -98,6 +99,8 @@ bool Application::prepare()
 	// Set the splashscreen filename as URL, since QML
 	// Image elements expect URLs, not filenames.
 	m_engine.rootContext()->setContextProperty("splashscreenUrl", QUrl::fromLocalFile(m_splashScreenFilename));
+	// Set the keepSplashscreen flag.
+	m_engine.rootContext()->setContextProperty("keepSplashscreen", m_keepSplashscreen);
 
 	// Load the QML from our resources.
 	m_engine.load(QUrl("qrc:/UserInterface.qml"));
@@ -367,6 +370,15 @@ void Application::loadConfiguration()
 		}
 		else
 			qCDebug(lcQtGLVidDemo) << "No splashscreen filename was specified";
+
+		if (!m_splashScreenFilename.isEmpty())
+		{
+			auto keepSplashscreenIter = splashscreenObject.find("keep");
+			if ((keepSplashscreenIter != splashscreenObject.end()) && keepSplashscreenIter->isBool())
+				m_keepSplashscreen = keepSplashscreenIter->toBool();
+
+			qCDebug(lcQtGLVidDemo) << "Keeping splashscreen:" << m_keepSplashscreen;
+		}
 	}
 }
 
@@ -436,6 +448,7 @@ void Application::saveConfiguration()
 	{
 		QJsonObject splashscreenObject;
 		splashscreenObject["filename"] = m_splashScreenFilename;
+		splashscreenObject["keep"] = m_keepSplashscreen;
 		jsonObject["splashscreen"] = splashscreenObject;
 	}
 

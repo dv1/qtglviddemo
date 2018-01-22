@@ -114,6 +114,7 @@ private:
 	bool m_saveConfigAtEnd;
 
 	QString m_splashScreenFilename;
+	bool m_keepSplashscreen;
 
 	QQmlApplicationEngine m_engine;
 	QQuickWindow *m_mainWindow;

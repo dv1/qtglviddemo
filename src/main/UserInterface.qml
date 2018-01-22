@@ -59,7 +59,9 @@ Window {
 			NumberAnimation { target: background; property: "opacity"; easing.type: Easing.Linear; from: 0; to: 1; duration: 2000 }
 		}
 		ParallelAnimation {
-			NumberAnimation { target: splashscreen; property: "opacity"; easing.type: Easing.Linear; from: 1; to: 0; duration: 2000 }
+			// Set the "to" value to 1 if keepSplashscreen is set to true
+			// to make the splashscreen remain visible in the background
+			NumberAnimation { target: splashscreen; property: "opacity"; easing.type: Easing.Linear; from: 1; to: (keepSplashscreen ? 1 : 0); duration: 2000 }
 			NumberAnimation { target: mainScreenSection; property: "opacity"; easing.type: Easing.InCubic; from: 0; to: 1; duration: 2000 }
 		}
 	}
@@ -77,7 +79,7 @@ Window {
 	Item {
 		id: splashscreen
 		opacity: 0
-		z: 100
+		z: 1
 		anchors.fill: parent
 		Image {
 			anchors.fill: parent
@@ -179,6 +181,7 @@ Window {
 		id: background
 		anchors.fill: parent
 		opacity: 0
+		z: 0
 		gradient: Gradient {
 			GradientStop { position: 0.0; color: Qt.rgba(0.25, 0.25, 0.25, 1.00) }
 			GradientStop { position: 1.0; color: Qt.rgba(0.36, 0.54, 0.60, 1.00) }
@@ -194,6 +197,7 @@ Window {
 		id: mainScreenSection
 		anchors.fill: parent
 		opacity: 0
+		z: 2
 
 
 		//////////////////////
