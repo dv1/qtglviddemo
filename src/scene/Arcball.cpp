@@ -54,6 +54,8 @@ void Arcball::press(unsigned int const p_x, unsigned int const p_y)
 	if (m_transform == nullptr)
 		return;
 
+	m_lastRotationAngle = 0.0f;
+
 	// Project a ray starting at the 2D coordinates
 	// from the screen on the sphere.
 	m_startVector = projectOnSphere(p_x, p_y);
@@ -102,6 +104,9 @@ void Arcball::drag(unsigned int const p_x, unsigned int const p_y)
 		newRot = QQuaternion();
 	}
 
+	m_lastRotationAxis = axis;
+	m_lastRotationAngle = angle;
+
 	// Combine the new rotation quaternion with the base rotation
 	// that was saved in press().
 	newRot = newRot * m_startRotation;
@@ -109,6 +114,18 @@ void Arcball::drag(unsigned int const p_x, unsigned int const p_y)
 
 	// Update the rotation quaternion of the associated transform.
 	m_transform->setRotation(std::move(newRot));
+}
+
+
+QVector3D Arcball::getLastRotationAxis() const
+{
+	return m_lastRotationAxis;
+}
+
+
+float Arcball::getLastRotationAngle() const
+{
+	return m_lastRotationAngle;
 }
 
 

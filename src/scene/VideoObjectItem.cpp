@@ -18,6 +18,8 @@
 
 
 #include <assert.h>
+#include <cmath>
+#include <limits>
 #include <memory>
 #include <QOpenGLFunctions>
 #include <QOpenGLFramebufferObject>
@@ -451,6 +453,44 @@ QSGNode* VideoObjectItem::updatePaintNode(QSGNode *p_oldNode, UpdatePaintNodeDat
 {
 	QQuickWindow *win = window();
 
+	// Check if we need to apply some inertial rotation.
+	if (std::abs(m_rotAttenuation) > std::numeric_limits < float > ::epsilon())
+	{
+		// Calculate how much time has passed since the last update.
+		GstClockTime curTime = gst_util_get_timestamp();
+		GstClockTime elapsedTime = curTime - m_lastUpdateTimestamp;
+		m_lastUpdateTimestamp = curTime;
+
+		// Compute the angle to use for the rotation based on the last
+		// rotation angle used by the arcball, scaled by elapsedTime/
+		// m_lastMovementDuration. The idea is that
+		//
+		//   m_lastRotationAngle / m_lastMovementDuration
+		//
+		// describes the amount of rotation in one second based on how
+		// fast the user rotated the arcball. Multiplying this then
+		// by elapsedTime yields how much to rotate for the given elapsed
+		// time.
+		float angle = m_lastRotationAngle * (double(elapsedTime) / double(m_lastMovementDuration));
+		// Dampen the angular speed by the rotation attenuation and the
+		// factor 0.1f (chosen empirically to make rotations less extreme).
+		angle *= m_rotAttenuation * 0.1f;
+		// Lower the attenuation, simulating a gradual slowdown.
+		m_rotAttenuation *= 0.9f;
+
+		// If the angle is still a meaningful nonzero value, apply the
+		// rotation and force an update so our rotated object is
+		// rendered as quickly as possible.
+		if (angle >= std::numeric_limits < float > ::epsilon())
+		{
+			QQuaternion rot = QQuaternion::fromAxisAndAngle(m_lastRotationAxis, angle) * m_transform.getRotation();
+			rot.normalize();
+			m_transform.setRotation(std::move(rot));
+
+			update();
+		}
+	}
+
 	if (win != nullptr)
 	{
 		// Calculate the pixel sizes and take the device pixel ratio into account.
@@ -475,6 +515,13 @@ void VideoObjectItem::mousePressEvent(QMouseEvent *p_event)
 {
 	QQuickItem::mousePressEvent(p_event);
 
+	// Reset inertia values, otherwise the object will keep trying
+	// to rotate even though the user is pressing the mouse button.
+	m_lastRotationAngle = 0.0f;
+	m_lastMovementTimestamp = gst_util_get_timestamp();
+	m_lastMovementDuration = 0;
+	m_rotAttenuation = 0.0f;
+
 	m_arcball.press(p_event->x(), p_event->y());
 	m_mouseButtonPressed = true;
 
@@ -492,7 +539,18 @@ void VideoObjectItem::mouseMoveEvent(QMouseEvent *p_event)
 	if (m_mouseButtonPressed)
 	{
 		m_arcball.drag(p_event->x(), p_event->y());
+
+		GstClockTime curTime = gst_util_get_timestamp();
+
+		// Record how much time passed since the last movement.
+		m_lastMovementDuration = GST_CLOCK_DIFF(m_lastMovementTimestamp, curTime);
+
+		m_lastRotationAxis = m_arcball.getLastRotationAxis();
+		m_lastRotationAngle = m_arcball.getLastRotationAngle();
+		m_lastMovementTimestamp = curTime;
+
 		update();
+
 		emit rotationChanged();
 	}
 
@@ -506,6 +564,40 @@ void VideoObjectItem::mouseReleaseEvent(QMouseEvent *p_event)
 	QQuickItem::mouseReleaseEvent(p_event);
 
 	m_mouseButtonPressed = false;
+
+	GstClockTime curTime = gst_util_get_timestamp();
+
+	// Calculate initial attenuation based on how long the mouse cursor
+	// has been standing still. Qt does not emit the mousemove or
+	// touch motion event as long as the cursor/finger is not moving.
+	// This is a problem, because if the user is holding the object
+	// still for a while, it should not have any inertia afterwards,
+	// but if they rotate and then let go quickly, it should.
+	// Solve this by figuring out how long there was no movement
+	// (stored in the timeSinceMovement variable) and using linear
+	// scaling to compute the rotation attenuation. This
+	// way, if the user let go quickly, then timeSinceMovement will be
+	// a low value, and m_rotAttenuation will be close to 1. If the
+	// user held the mouse cursor in place for more than what
+	// the standstillLimit constant specifies, then the scaling will
+	// set m_rotAttenuation to 0, and there will be no inertia.
+	GstClockTimeDiff const standstillLimit = GST_MSECOND * 20;
+	GstClockTimeDiff timeSinceMovement = GST_CLOCK_DIFF(m_lastMovementTimestamp, curTime);
+	if (timeSinceMovement > standstillLimit)
+		timeSinceMovement = standstillLimit;
+	m_rotAttenuation = double(standstillLimit - timeSinceMovement) / double(standstillLimit);
+
+	// Record current time, necessary for the inertia computation
+	// code in updatePaintNode().
+	m_lastUpdateTimestamp = curTime;
+
+	// If the rotation attenuation is nonzero, request an update to
+	// make sure updatePaintNode() is called ASAP.
+	if (m_rotAttenuation > std::numeric_limits < float > ::epsilon())
+	{
+		qCDebug(lcQtGLVidDemo) << "Rotation attenuation value is nonzero (" << m_rotAttenuation << "); updating rendering";
+		update();
+	}
 
 	// We handled the event, so accept it.
 	p_event->accept();

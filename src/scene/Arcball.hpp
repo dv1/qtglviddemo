@@ -121,11 +121,23 @@ public:
 	 */
 	void drag(unsigned int const p_x, unsigned int const p_y);
 
+	/**
+	 * Returns the last rotation axis that was computed in the drag() function.
+	 */
+	QVector3D getLastRotationAxis() const;
+	/**
+	 * Returns the last rotation angle that was computed in the drag() function.
+	 */
+	float getLastRotationAngle() const;
+
 
 private:
 	QVector3D projectOnSphere(unsigned int const p_x, unsigned int const p_y) const;
 
 	Transform *m_transform;
+
+	QVector3D m_lastRotationAxis;
+	float m_lastRotationAngle;
 
 	QQuaternion m_startRotation;
 	QVector3D m_startVector;

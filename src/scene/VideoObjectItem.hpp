@@ -155,7 +155,13 @@ private:
 	QRect m_cropRectangle;
 	QString m_meshType;
 	int m_textureRotation;
-	
+
+	QVector3D m_lastRotationAxis;
+	float m_lastRotationAngle;
+	GstClockTime m_lastMovementTimestamp, m_lastMovementDuration;
+	float m_rotAttenuation;
+	GstClockTime m_lastUpdateTimestamp;
+
 	mutable GStreamerPlayer m_player;
 };
 
