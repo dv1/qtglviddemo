@@ -94,6 +94,59 @@ Window {
 	}
 
 
+	/////////////////
+	// Message box //
+	/////////////////
+
+	Rectangle {
+		id: msgbox
+		color: "#88222222"
+		anchors.fill: parent
+		anchors.leftMargin: parent.width * 0.2
+		anchors.rightMargin: parent.width * 0.2
+		anchors.topMargin: parent.height * 0.2
+		anchors.bottomMargin: parent.height * 0.2
+		radius: 10
+		z: 999
+		visible: false
+
+		Text {
+			id: msgboxText
+			color: "white"
+			text: ""
+			textFormat: Text.StyledText
+			font.family: "Dosis"
+			font.pointSize: 20
+			anchors.bottom: parent.bottom
+			anchors.top: parent.top
+			anchors.right: parent.right
+			anchors.left: parent.left
+			horizontalAlignment: Text.AlignHCenter
+			verticalAlignment: Text.AlignVCenter
+			wrapMode: Text.WordWrap
+		}
+
+		Timer {
+			id: msgboxTimer
+			interval: 2000
+			running: false
+			repeat: false
+			onTriggered: {
+				msgbox.visible = false;
+				msgboxText.text = "";
+			}
+		}
+
+		function setText(text)
+		{
+			msgboxText.text = text;
+			msgbox.visible = true;
+			msgboxTimer.interval = Math.max(text.length * 120, 1000);
+			msgboxTimer.start();
+		}
+	}
+
+
 	/////////////////////////
 	// Video item delegate //
 	/////////////////////////
@@ -591,7 +644,10 @@ Window {
 				Button {
 					Layout.fillWidth: true
 					text: "Save configuration"
-					onClicked: saveConfiguration()
+					onClicked: {
+						saveConfiguration();
+						msgbox.setText("Configuration saved");
+					}
 				}
 				Item {
 					Layout.fillWidth: true
