@@ -337,7 +337,13 @@ Window {
 							}
 						}
 
-						property var meshType: itemView.currentItem.meshTypeValue
+						property var meshType: {
+							var curItem = itemView.currentItem;
+							if (curItem !== null)
+								return curItem.meshTypeValue;
+							else
+								return null;
+						}
 
 						onActivated: {
 							var desc = model.get(currentIndex);
@@ -347,6 +353,8 @@ Window {
 
 						onMeshTypeChanged: {
 							var curItem = itemView.currentItem;
+							if (curItem === null)
+								return;
 
 							var index = 0;
 							for (var i = 0; i < model.count; i++) {
@@ -375,7 +383,13 @@ Window {
 							}
 						}
 
-						property var subtitleSource: itemView.currentItem.subtitleSourceValue
+						property var subtitleSource: {
+							var curItem = itemView.currentItem;
+							if (curItem !== null)
+								return curItem.subtitleSourceValue;
+							else
+								return null;
+						}
 
 						onActivated: {
 							var desc = model.get(currentIndex);
@@ -385,6 +399,8 @@ Window {
 
 						onSubtitleSourceChanged: {
 							var curItem = itemView.currentItem;
+							if (curItem === null)
+								return;
 
 							var index = 0;
 							for (var i = 0; i < model.count; i++) {
