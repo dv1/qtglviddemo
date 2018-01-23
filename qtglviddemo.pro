@@ -6,6 +6,7 @@ QT += core qml quick quickcontrols2 widgets
 TARGET = qtglviddemo
 
 SOURCES += \
+	src/base/SystemStats.cpp \
 	src/base/Utility.cpp \
 	src/base/FifoWatch.cpp \
 	src/base/VideoInputDevicesModel.cpp \
@@ -33,6 +34,7 @@ SOURCES += \
 HEADERS += \
 	src/base/ScopeGuard.hpp \
 	src/base/VideoInputDevicesModel.hpp \
+	src/base/SystemStats.hpp \
 	src/base/FifoWatch.hpp \
 	src/base/Utility.hpp \
 	src/mesh/TeapotMesh.hpp \

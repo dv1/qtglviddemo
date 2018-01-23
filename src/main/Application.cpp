@@ -48,6 +48,7 @@ QString toString(VideoObjectModel::SubtitleSource p_subtitleSource)
 	{
 		case VideoObjectModel::SubtitleSource::FIFOSubtitles: return "fifo";
 		case VideoObjectModel::SubtitleSource::MediaSubtitles: return "media";
+		case VideoObjectModel::SubtitleSource::SystemStatsSubtitles: return "systemStats";
 		default: assert(false);
 	}
 
@@ -56,8 +57,9 @@ QString toString(VideoObjectModel::SubtitleSource p_subtitleSource)
 
 bool fromString(QString const p_string, VideoObjectModel::SubtitleSource &p_subtitleSource)
 {
-	if      (p_string == "fifo")  p_subtitleSource = VideoObjectModel::SubtitleSource::FIFOSubtitles;
-	else if (p_string == "media") p_subtitleSource = VideoObjectModel::SubtitleSource::MediaSubtitles;
+	if      (p_string == "fifo")        p_subtitleSource = VideoObjectModel::SubtitleSource::FIFOSubtitles;
+	else if (p_string == "media")       p_subtitleSource = VideoObjectModel::SubtitleSource::MediaSubtitles;
+	else if (p_string == "systemStats") p_subtitleSource = VideoObjectModel::SubtitleSource::SystemStatsSubtitles;
 	else return false;
 
 	return true;
@@ -70,6 +72,7 @@ Application::Application(int &argc, char **argv)
 	: QApplication(argc, argv)
 	, m_saveConfigAtEnd(false)
 	, m_keepSplashscreen(false)
+	, m_renderingDuration(0)
 {
 	// Set some information about our application.
 	QGuiApplication::setApplicationName("qtglviddemo");
@@ -107,6 +110,9 @@ bool Application::prepare()
 
 	// Make sure the window is visible.
 	m_mainWindow->show();
+
+	connect(m_mainWindow, &QQuickWindow::beforeRendering, this, &Application::onBeforeRendering, Qt::DirectConnection);
+	connect(m_mainWindow, &QQuickWindow::afterRendering, this, &Application::onAfterRendering, Qt::DirectConnection);
 
 	return true;
 }
@@ -160,9 +166,43 @@ std::pair < bool, int > Application::parseCommandLineArgs()
 }
 
 
+QString Application::getSystemStats() const
+{
+	GstClockTime dur;
+
+	{
+		std::lock_guard < std::mutex > lock(m_sysStatsMutex);
+		dur = m_renderingDuration;
+	}
+
+	m_systemStats.update();
+	return QString("CPU %1%<br>memory %2% (%3 kB)<br>%4 ms render time (%5 FPS)")
+	       .arg(int(m_systemStats.getNormalizedCpuUsage() * 100.0f))
+	       .arg(int(m_systemStats.getNormalizedMemoryUsage() * 100.0f))
+	       .arg(m_systemStats.getMemoryUsageInBytes() / 1024)
+	       .arg(double(dur) / double(GST_MSECOND), 0, 'f', 2)
+	       .arg(double(GST_SECOND) / double(dur), 0, 'f', 1)
+	       ;
+}
+
+
 QQuickWindow& Application::getMainWindow()
 {
 	return *m_mainWindow;
+}
+
+
+void Application::onBeforeRendering()
+{
+	m_beginRenderingTimestamp = gst_util_get_timestamp();
+}
+
+
+void Application::onAfterRendering()
+{
+	std::lock_guard < std::mutex > lock(m_sysStatsMutex);
+	GstClockTime afterRenderingTimestamp = gst_util_get_timestamp();
+	m_renderingDuration = GST_CLOCK_DIFF(m_beginRenderingTimestamp, afterRenderingTimestamp);
 }
 
 

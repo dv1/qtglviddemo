@@ -20,12 +20,15 @@
 #ifndef QTGLVIDDEMO_APPLICATION_HPP
 #define QTGLVIDDEMO_APPLICATION_HPP
 
+#include <mutex>
 #include <utility>
 #include <memory>
 #include <QUrl>
 #include <QApplication>
 #include <QQuickWindow>
 #include <QQmlApplicationEngine>
+#include <gst/gst.h>
+#include "base/SystemStats.hpp"
 #include "base/FifoWatch.hpp"
 #include "base/VideoInputDevicesModel.hpp"
 #include "scene/VideoObjectModel.hpp"
@@ -111,8 +114,20 @@ public:
 
 	Q_INVOKABLE void saveConfiguration();
 
+	/**
+	 * Measure system stats and get them formatted as a string.
+	 *
+	 * This contains CPU usage, memory usage, and framerate.
+	 */
+	Q_INVOKABLE QString getSystemStats() const;
+
 	/// Retrieve a reference to the main application window.
 	QQuickWindow & getMainWindow();
+
+
+private slots:
+	void onBeforeRendering();
+	void onAfterRendering();
 
 
 private:
@@ -142,6 +157,11 @@ private:
 
 	VideoObjectModel m_videoObjectModel;
 	VideoInputDevicesModel m_videoInputDevicesModel;
+
+	mutable std::mutex m_sysStatsMutex;
+	mutable SystemStats m_systemStats;
+	GstClockTime m_beginRenderingTimestamp;
+	GstClockTimeDiff m_renderingDuration;
 };
 
 

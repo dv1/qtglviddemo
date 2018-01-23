@@ -381,6 +381,10 @@ Window {
 								text: "FIFO"
 								subtitleSource: VideoObjectModel.FIFOSubtitles
 							}
+							ListElement {
+								text: "System stats"
+								subtitleSource: VideoObjectModel.SystemStatsSubtitles
+							}
 						}
 
 						property var subtitleSource: {
@@ -771,6 +775,22 @@ Window {
 					}
 				}
 			}
+		}
+	}
+
+	Timer {
+		interval: 1000
+		running: true
+		repeat: true
+		onTriggered: {
+			var curItem = itemView.currentItem;
+			if (curItem === null)
+				return;
+
+			var stats = getSystemStats();
+
+			if (itemView.currentItem.subtitleSourceValue == VideoObjectModel.SystemStatsSubtitles)
+				playerConnections.playbackSubtitle = stats;
 		}
 	}
 

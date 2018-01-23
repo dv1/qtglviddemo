@@ -81,7 +81,12 @@ public:
 		 * Subtitles for the video object shall come from the
 		 * video object's associated media player.
 		 */
-		MediaSubtitles
+		MediaSubtitles,
+		/**
+		 * Subtitles for the video object shall come from system
+		 * stat measurements (CPU usage, memory usage, framerate).
+		 */
+		SystemStatsSubtitles
 	};
 	Q_ENUM(SubtitleSource)
 
