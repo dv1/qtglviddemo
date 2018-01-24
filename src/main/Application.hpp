@@ -149,6 +149,7 @@ private:
 
 	QQmlApplicationEngine m_engine;
 	QQuickWindow *m_mainWindow;
+	bool m_fullscreen;
 
 	// Keeping the FIFO path separately because the FifoWatch getPath()
 	// function returns an empty string when the FIFO watch is stopped.

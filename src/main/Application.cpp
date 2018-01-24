@@ -72,6 +72,7 @@ Application::Application(int &argc, char **argv)
 	: QApplication(argc, argv)
 	, m_saveConfigAtEnd(false)
 	, m_keepSplashscreen(false)
+	, m_fullscreen(false)
 	, m_renderingDuration(0)
 {
 	// Set some information about our application.
@@ -109,7 +110,10 @@ bool Application::prepare()
 	m_mainWindow->setMinimumSize(QSize(800, 600));	
 
 	// Make sure the window is visible.
-	m_mainWindow->show();
+	if (m_fullscreen)
+		m_mainWindow->showFullScreen();
+	else
+		m_mainWindow->show();
 
 	connect(m_mainWindow, &QQuickWindow::beforeRendering, this, &Application::onBeforeRendering, Qt::DirectConnection);
 	connect(m_mainWindow, &QQuickWindow::afterRendering, this, &Application::onAfterRendering, Qt::DirectConnection);
@@ -129,6 +133,8 @@ std::pair < bool, int > Application::parseCommandLineArgs()
 	cmdlineParser.addOption(writeConfigAtEndOption);
 	QCommandLineOption configFileOption(QStringList() << "c" << "config-file", "Configuration file to use", "config-file");
 	cmdlineParser.addOption(configFileOption);
+	QCommandLineOption fullscreenOption(QStringList() << "f" << "fullscreen", "Run in fullscreen mode");
+	cmdlineParser.addOption(fullscreenOption);
 
 	if (!cmdlineParser.parse(arguments()))
 	{
@@ -161,6 +167,8 @@ std::pair < bool, int > Application::parseCommandLineArgs()
 		qCDebug(lcQtGLVidDemo) << "Will save configuration when program ends";
 		m_saveConfigAtEnd = true;
 	}
+
+	m_fullscreen = cmdlineParser.isSet(fullscreenOption);
 
 	return std::make_pair(true, 0);
 }
