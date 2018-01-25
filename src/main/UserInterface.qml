@@ -255,6 +255,7 @@ Window {
 	Item {
 		id: mainScreenSection
 		anchors.fill: parent
+		anchors.margins: 0
 		opacity: 0
 		z: 2
 
@@ -266,14 +267,10 @@ Window {
 		Rectangle {
 			id: controls
 			color: "#88222222"
-			anchors.left: parent.left
-			anchors.top: parent.top
-			anchors.bottom: parent.bottom
-			anchors.leftMargin: 10
-			anchors.topMargin: 10
-			anchors.rightMargin: 10
-			anchors.bottomMargin: playbar.height + 40
+			x: 10
+			y: 10
 			width: parent.width * 0.3
+			height: sidebarLayout.height
 			radius: 10
 			z: 20
 
@@ -281,18 +278,18 @@ Window {
 			states: [
 				State {
 					name: "VISIBLE"
-					PropertyChanges { target: controls; anchors.leftMargin: 10 }
+					PropertyChanges { target: controls; x: 10 }
 				},
 				State {
 					name: "HIDDEN"
-					PropertyChanges { target: controls; anchors.leftMargin: -width }
+					PropertyChanges { target: controls; x: -width }
 				}
 			]
 
 			transitions: [
 				Transition {
 					PropertyAnimation {
-						properties: "anchors.leftMargin"
+						properties: "x"
 						easing.type: Easing.InOutCubic
 						duration: 800
 					}
@@ -315,7 +312,9 @@ Window {
 			// itself would signal that data got changed, then the code here would
 			// get notified about this and set the properties etc.
 			ColumnLayout {
-				anchors.fill: parent
+				id: sidebarLayout
+				anchors.left: parent.left
+				anchors.right: parent.right
 				anchors.margins: 10
 				Layout.alignment: Qt.AlignTop | Qt.AlignLeft
 				spacing: 5
@@ -625,28 +624,34 @@ Window {
 						Button {
 							text: "Local file"
 							onClicked: fileDialog.open()
+							Layout.fillWidth: true
 						}
 						Button {
 							text: "Capture device"
 							onClicked: captureDeviceDialog.open()
+							Layout.fillWidth: true
 						}
 						Button {
 							text: "URL"
 							onClicked: urlDialog.open()
+							Layout.fillWidth: true
 						}
 					}
 				}
-				Button {
+				RowLayout {
 					Layout.fillWidth: true
-					text: "Remove current media"
-					onClicked: videoObjectModel.remove(itemView.currentIndex)
-				}
-				Button {
-					Layout.fillWidth: true
-					text: "Save configuration"
-					onClicked: {
-						saveConfiguration();
-						msgbox.setText("Configuration saved");
+					Button {
+						Layout.fillWidth: true
+						text: "Remove current media"
+						onClicked: videoObjectModel.remove(itemView.currentIndex)
+					}
+					Button {
+						Layout.fillWidth: true
+						text: "Save configuration"
+						onClicked: {
+							saveConfiguration();
+							msgbox.setText("Configuration saved");
+						}
 					}
 				}
 				Item {
@@ -661,174 +666,200 @@ Window {
 		// Main view and playbar //
 		///////////////////////////
 
-		ColumnLayout {
+		MouseArea {
 			anchors.fill: parent
-			anchors.margins: 10
+			onClicked: playbar.state = (playbar.state == "VISIBLE") ? "HIDDEN" : "VISIBLE";
+		}
 
-			// Main view, with a text overlay for the subtitles
-			Item {
-				Layout.fillWidth: true
-				Layout.fillHeight: true
-				PathView {
-					id: itemView
-					anchors.fill: parent
-					model: videoObjectModel
-					delegate: videoObjectDelegate
-					clip: true
-					// Set the cache item cound to the model count to prevent
-					// VideoObject instances from getting discarded. This would
-					// otherwise happen if more than 3 video objects were visible
-					// at the same time.
-					cacheItemCount: model.count
-					pathItemCount: 3
-					preferredHighlightBegin: 0.5
-					preferredHighlightEnd: 0.5
-					snapMode: PathView.SnapToItem
-					// Disable default PathView user interactions, otherwise
-					// the custom MouseArea code in the delegate would conflict
-					// with this functionality.
-					interactive: false
+		Item {
+			anchors.fill: parent
+			PathView {
+				id: itemView
+				anchors.fill: parent
+				model: videoObjectModel
+				delegate: videoObjectDelegate
+				clip: true
+				// Set the cache item cound to the model count to prevent
+				// VideoObject instances from getting discarded. This would
+				// otherwise happen if more than 3 video objects were visible
+				// at the same time.
+				cacheItemCount: model.count
+				pathItemCount: 3
+				preferredHighlightBegin: 0.5
+				preferredHighlightEnd: 0.5
+				snapMode: PathView.SnapToItem
+				// Disable default PathView user interactions, otherwise
+				// the custom MouseArea code in the delegate would conflict
+				// with this functionality.
+				interactive: false
 
-					// Define a simple path for 3 elements. This path also has
-					// attributes for scaling and opacity, to make non-current
-					// items look smaller and more translucent. Also, the
-					// itemZ attribute makes sure that the current item is
-					// at the front, and the other ones are behind it.
-					// In case there are only 2 elements, the attributes are
-					// different, since the path view arranges 2 items
-					// differently.
-					path: Path {
-						startX: itemView.width / 2 - window.itemWidth * ((itemView.model.count < 3) ? 0.65 : 1.0)
-						startY: window.itemHeight / 2
-						PathAttribute { name: "itemZ"; value: 0.0 }
-						PathAttribute { name: "itemOpacity"; value: 0.2 }
-						PathAttribute { name: "itemScale"; value: (itemView.model.count < 3) ? 0.55 : 0.3 }
-						PathLine {
-							x: itemView.width / 2
-							y: itemView.height / 2
-						}
-						PathAttribute { name: "itemZ"; value: 0.9 }
-						PathAttribute { name: "itemOpacity"; value: 1.0 }
-						PathAttribute { name: "itemScale"; value: 1.0 }
-						PathLine {
-							x: itemView.width / 2 + window.itemWidth * ((itemView.model.count < 3) ? 0.65 : 1.0)
-							y: window.itemHeight / 2
-						}
+				// Define a simple path for 3 elements. This path also has
+				// attributes for scaling and opacity, to make non-current
+				// items look smaller and more translucent. Also, the
+				// itemZ attribute makes sure that the current item is
+				// at the front, and the other ones are behind it.
+				// In case there are only 2 elements, the attributes are
+				// different, since the path view arranges 2 items
+				// differently.
+				path: Path {
+					startX: itemView.width / 2 - window.itemWidth * ((itemView.model.count < 3) ? 0.65 : 1.0)
+					startY: window.itemHeight / 2
+					PathAttribute { name: "itemZ"; value: 0.0 }
+					PathAttribute { name: "itemOpacity"; value: 0.2 }
+					PathAttribute { name: "itemScale"; value: (itemView.model.count < 3) ? 0.55 : 0.3 }
+					PathLine {
+						x: itemView.width / 2
+						y: itemView.height / 2
 					}
-				}
-
-				Text {
-					id: subtitle
-					color: "white"
-					style: Text.Outline
-					styleColor: "black"
-					text: playerConnections.playbackSubtitle
-					textFormat: Text.StyledText
-					font.family: "Dosis"
-					font.pointSize: 20
-					anchors.bottom: parent.bottom
-					anchors.top: parent.top
-					anchors.right: parent.right
-					anchors.left: parent.left
-					anchors.bottomMargin: parent.height * 0.1
-					anchors.topMargin: parent.height * 0.1
-					anchors.rightMargin: parent.width * 0.1
-					anchors.leftMargin: parent.width * 0.1
-					horizontalAlignment: Text.AlignHCenter
-					verticalAlignment: Text.AlignBottom
-					wrapMode: Text.WordWrap
+					PathAttribute { name: "itemZ"; value: 0.9 }
+					PathAttribute { name: "itemOpacity"; value: 1.0 }
+					PathAttribute { name: "itemScale"; value: 1.0 }
+					PathLine {
+						x: itemView.width / 2 + window.itemWidth * ((itemView.model.count < 3) ? 0.65 : 1.0)
+						y: window.itemHeight / 2
+					}
 				}
 			}
 
-			// Playbar
-			Rectangle {
-				color: "#88222222"
-				Layout.fillWidth: true
-				Layout.fillHeight: false
-				radius: 10
-				height: 60
-				z: 20
+			Text {
+				id: subtitle
+				color: "white"
+				style: Text.Outline
+				styleColor: "black"
+				text: playerConnections.playbackSubtitle
+				textFormat: Text.StyledText
+				font.family: "Dosis"
+				font.pointSize: 20
+				anchors.bottom: parent.bottom
+				anchors.top: parent.top
+				anchors.right: parent.right
+				anchors.left: parent.left
+				anchors.bottomMargin: parent.height * 0.1
+				anchors.topMargin: parent.height * 0.1
+				anchors.rightMargin: parent.width * 0.1
+				anchors.leftMargin: parent.width * 0.1
+				horizontalAlignment: Text.AlignHCenter
+				verticalAlignment: Text.AlignBottom
+				wrapMode: Text.WordWrap
+			}
+		}
 
-				RowLayout {
-					id: playbar
-					anchors.fill: parent
-					anchors.margins: 10
+		// Playbar
+		Rectangle {
+			id: playbar
+			color: "#88222222"
+			radius: 10
+			height: playbarLayout.height
+			anchors.left: parent.left
+			anchors.right: parent.right
+			anchors.leftMargin: 10
+			anchors.rightMargin: 10
+			y: window.height - playbarLayout.height - 10
+			z: 20
 
-					Button {
-						Layout.fillWidth: false
-						Layout.fillHeight: true
-						text: "Toggle controls"
-						onClicked: { controls.state = (controls.state == "VISIBLE") ? "HIDDEN" : "VISIBLE"; }
+			state: "VISIBLE"
+			states: [
+				State {
+					name: "VISIBLE"
+					PropertyChanges { target: playbar; y: window.height - playbarLayout.height - 10 }
+				},
+				State {
+					name: "HIDDEN"
+					PropertyChanges { target: playbar; y: window.height }
+				}
+			]
+
+			transitions: [
+				Transition {
+					PropertyAnimation {
+						properties: "y"
+						easing.type: Easing.InOutCubic
+						duration: 400
 					}
-					Button {
-						Layout.fillWidth: false
-						Layout.fillHeight: true
-						text: "Previous"
-						onClicked: itemView.decrementCurrentIndex()
+				}
+			]
+
+
+			RowLayout {
+				id: playbarLayout
+				anchors.left: parent.left
+				anchors.right: parent.right
+				anchors.margins: 10
+
+				Button {
+					Layout.fillWidth: false
+					Layout.fillHeight: true
+					text: "Toggle controls"
+					onClicked: { controls.state = (controls.state == "VISIBLE") ? "HIDDEN" : "VISIBLE"; }
+				}
+				Button {
+					Layout.fillWidth: false
+					Layout.fillHeight: true
+					text: "Previous"
+					onClicked: itemView.decrementCurrentIndex()
+				}
+				Button {
+					Layout.fillWidth: false
+					Layout.fillHeight: true
+					text: "Next"
+					onClicked: itemView.incrementCurrentIndex()
+				}
+				Button {
+					Layout.fillWidth: false
+					Layout.fillHeight: true
+					text: {
+						switch (playerConnections.playbackState) {
+							case GStreamerPlayer.Paused: return "Resume";
+							case GStreamerPlayer.Playing: return "Pause";
+							case GStreamerPlayer.Idle: return "Play";
+							default: return "...";
+						}
 					}
-					Button {
-						Layout.fillWidth: false
-						Layout.fillHeight: true
-						text: "Next"
-						onClicked: itemView.incrementCurrentIndex()
-					}
-					Button {
-						Layout.fillWidth: false
-						Layout.fillHeight: true
-						text: {
-							switch (playerConnections.playbackState) {
-								case GStreamerPlayer.Paused: return "Resume";
-								case GStreamerPlayer.Playing: return "Pause";
-								case GStreamerPlayer.Idle: return "Play";
-								default: return "...";
+					enabled: (playerConnections.playbackState == GStreamerPlayer.Paused) || (playerConnections.playbackState == GStreamerPlayer.Playing);
+					onClicked: {
+						if (itemView.currentItem != null) {
+							var curState = itemView.currentItem.player.state;
+							if ((curState === GStreamerPlayer.Playing) || (curState === GStreamerPlayer.Paused))
+							{
+								if (curState === GStreamerPlayer.Playing)
+									itemView.currentItem.player.pause();
+								else
+									itemView.currentItem.player.play();
 							}
 						}
-						enabled: (playerConnections.playbackState == GStreamerPlayer.Paused) || (playerConnections.playbackState == GStreamerPlayer.Playing);
-						onClicked: {
-							if (itemView.currentItem != null) {
-								var curState = itemView.currentItem.player.state;
-								if ((curState === GStreamerPlayer.Playing) || (curState === GStreamerPlayer.Paused))
-								{
-									if (curState === GStreamerPlayer.Playing)
-										itemView.currentItem.player.pause();
-									else
-										itemView.currentItem.player.play();
-								}
-							}
-						}
 					}
-					Slider {
-						id: positionSlider
-						Layout.fillWidth: true
-						Layout.fillHeight: true
-						from: 0
-						to: (playerConnections.playbackDuration >= 0) ? playerConnections.playbackDuration : 1
-						enabled: playerConnections.playbackIsSeekable
+				}
+				Slider {
+					id: positionSlider
+					Layout.fillWidth: true
+					Layout.fillHeight: true
+					from: 0
+					to: (playerConnections.playbackDuration >= 0) ? playerConnections.playbackDuration : 1
+					enabled: playerConnections.playbackIsSeekable
 
-						// This property is used to avoid endless loops between
-						// onValueChanged and the onPlaybackSubtitleChanged slot.
-						property var blockOnPositionChanged: false
+					// This property is used to avoid endless loops between
+					// onValueChanged and the onPlaybackSubtitleChanged slot.
+					property var blockOnPositionChanged: false
 
-						onValueChanged: {
-							if (!blockOnPositionChanged && (itemView.currentItem != null))
-								itemView.currentItem.player.seek(value);
-						}
-						Component.onCompleted: {
-							playerConnections.onPlaybackPositionChanged.connect(function() {
-								positionSlider.blockOnPositionChanged = true;
-								positionSlider.value = playerConnections.playbackPosition;
-								positionSlider.blockOnPositionChanged = false;
-							});
-						}
+					onValueChanged: {
+						if (!blockOnPositionChanged && (itemView.currentItem != null))
+							itemView.currentItem.player.seek(value);
 					}
-					Label {
-						id: positionLabel
-						Layout.fillWidth: false
-						Layout.fillHeight: true
-						text: getMsecsAsTime(playerConnections.playbackPosition) + " / " + getMsecsAsTime(playerConnections.playbackDuration);
-						horizontalAlignment: Text.AlignHCenter
-						verticalAlignment: Text.AlignVCenter
+					Component.onCompleted: {
+						playerConnections.onPlaybackPositionChanged.connect(function() {
+							positionSlider.blockOnPositionChanged = true;
+							positionSlider.value = playerConnections.playbackPosition;
+							positionSlider.blockOnPositionChanged = false;
+						});
 					}
+				}
+				Label {
+					id: positionLabel
+					Layout.fillWidth: false
+					Layout.fillHeight: true
+					text: getMsecsAsTime(playerConnections.playbackPosition) + " / " + getMsecsAsTime(playerConnections.playbackDuration);
+					horizontalAlignment: Text.AlignHCenter
+					verticalAlignment: Text.AlignVCenter
 				}
 			}
 		}
